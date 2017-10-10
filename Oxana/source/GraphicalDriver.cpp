@@ -34,9 +34,7 @@ static void ShowExampleAppFixedOverlay(bool* p_open)
 
 namespace GraphicalDriver
 {
-  GUI::GUI(const Settings & settings) :
-    window(sf::VideoMode(settings.width, settings.height), settings.title),
-    settings(settings), steps(0), currentStep(steps), isAutomatic(false)
+  GUI::GUI(const Settings & settings) :settings(settings), steps(0), currentStep(steps), isAutomatic(false)
   {
   }
 
@@ -56,7 +54,9 @@ namespace GraphicalDriver
 
   void GUI::Initialize()
   {
-    ImGui::SFML::Init(window);
+    window = std::make_unique<sf::RenderWindow>(sf::VideoMode(settings.width, settings.height), settings.title);
+    window->setKeyRepeatEnabled(false);
+    ImGui::SFML::Init(*window);
     outputFile = std::freopen(settings.stdoutCaptureFile.c_str(), "w+", stdout);
     RecordVariables();
     SynchronizeBuffers();
@@ -103,23 +103,25 @@ namespace GraphicalDriver
 
     sf::Clock deltaClock;
 
-    while (window.isOpen())
+    while (window->isOpen())
     {
-      sf::Event event;
-      while (window.pollEvent(event))
+      sf::Event event;      
+      while (window->pollEvent(event))
       {
         ImGui::SFML::ProcessEvent(event);
         if (event.type == sf::Event::Closed)
-          window.close();
+          window->close();
+        if (event.type == sf::Event::KeyPressed)
+          OnInput(event.key.code);
       }
 
-      ImGui::SFML::Update(window, deltaClock.restart());
+      ImGui::SFML::Update(*window, deltaClock.restart());
       Update();
 
       const sf::Color bgColor = sf::Color::White;
-      window.clear(bgColor);
-      ImGui::SFML::Render(window);
-      window.display();
+      window->clear(bgColor);
+      ImGui::SFML::Render(*window);
+      window->display();
     }
 
     Shutdown();
@@ -139,6 +141,12 @@ namespace GraphicalDriver
     if (isDone)
       return;
 
+    if (!settings.stepFunction)
+    {
+
+      return;
+    }
+
     isDone = !settings.stepFunction();
 
     steps++;
@@ -151,7 +159,7 @@ namespace GraphicalDriver
     for (auto& colorMap : colorMapWindows)
       colorMap.Update();
 
-    for (auto& notification : notifications)
+    for (auto& notification : persistentNotifications)
     {
       notification.Update();  
       if (notification.enabled)
@@ -183,16 +191,62 @@ namespace GraphicalDriver
     for (auto& window : colorMapWindows)
       window.Draw((unsigned) bufferIndex);
 
-    for (auto& notification : notifications)
+    for (auto& notification : persistentNotifications)
       notification.Draw((unsigned) bufferIndex);
 
 
   }
 
+  void GUI::Step(const StepType & type)
+  {
+    const int min = (steps > settings.stepBufferSize) ? steps - settings.stepBufferSize + 1 : 1;
+    const int max = steps;
+    switch (type)
+    {
+      case StepType::Once:
+        OnStep();
+        break;
+      case StepType::Multiple:
+        for (int i = 0; i < settings.stepMultiplier; ++i)
+          OnStep();
+        break;
+      case StepType::Forward:
+        if (currentStep < max)
+          currentStep++;
+        break;
+      case StepType::Backward:
+        if (currentStep > min)
+          currentStep--;
+        break;
+    }
+  }
+
+  void GUI::OnInput(sf::Keyboard::Key key)
+  {
+    const int min = (steps > settings.stepBufferSize) ? steps - settings.stepBufferSize + 1 : 1;
+    const int max = steps;
+
+    switch (key)
+    {
+      case sf::Keyboard::Left:      
+        Step(StepType::Backward);
+        break;
+      case sf::Keyboard::Right:
+        Step(StepType::Forward);
+        break;
+      case sf::Keyboard::Up:
+        Step(StepType::Once);
+        break;
+      case sf::Keyboard::Space:
+        Step(StepType::Multiple);
+        break;
+    }
+  }
+
   void GUI::DrawControls()
   {
     // Controls the 'CurrentStep' slider
-    int min = (steps > settings.stepBufferSize) ? steps - settings.stepBufferSize + 1 : 1;
+    const int min = (steps > settings.stepBufferSize) ? steps - settings.stepBufferSize + 1 : 1;
     const int max = steps;
 
     ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
@@ -216,33 +270,26 @@ namespace GraphicalDriver
     // Take steps
     {
       if (ImGui::Button("Step Once"))
-        OnStep();
+        Step(StepType::Once);
 
       ImGui::SameLine();
-      if (ImGui::Button("Step Multiple"))
-      {
-        for (int i = 0; i < settings.stepMultiplier; ++i)
-          OnStep();
-      }
+      if (ImGui::Button("Step Multiple"))      
+        Step(StepType::Multiple);       
+      
     }
     ImGui::EndGroup();
 
     // Timeline
     if (steps > 0)
     {
-      if (ImGui::Button("Backward"))
-      {
-        if (currentStep > min)
-          currentStep--;
-      }
+      if (ImGui::Button("Backward"))      
+        Step(StepType::Backward);      
       ImGui::SameLine();
       ImGui::SliderInt("", &currentStep, min, max);
       ImGui::SameLine();
-      if (ImGui::Button("Forward"))
-      {
-        if (currentStep < max)
-          currentStep++;
-      }
+      if (ImGui::Button("Forward"))      
+        Step(StepType::Forward);
+      
     }
 
     ImGui::End();
@@ -272,15 +319,7 @@ namespace GraphicalDriver
         for (int j = 0; j < cols; ++j)
         {
           draw_list->AddRectFilled(ImVec2(x, y), ImVec2(x + sz, y + sz), col32); 
-          if (ImGui::IsItemHovered());
-          {
-            ImGui::BeginTooltip();
-            ImGui::TextUnformatted("Meow");
-            ImGui::EndTooltip();
-          }
           x += sz + spacing;            
-          //draw_list->AddRectFilled(ImVec2(x, y), ImVec2(x + cellSize.x, y + cellSize.y), col32);
-          //x += cellSize.x + spacing;
         }        
         y += sz + spacing;
       }
@@ -301,10 +340,12 @@ namespace GraphicalDriver
 
   void GUI::DrawWatcher()
   {
+    if (watchVariables.empty() && plotVariables.empty())
+      return;
+
     ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
     ImGui::Begin("Watcher");
     {
-
       // Watch      
       if (!watchVariables.empty())
       {
@@ -355,7 +396,7 @@ namespace GraphicalDriver
           ImGui::NextColumn();
           // Plot
           if (!var->history.empty())
-            ImGui::PlotLines("", &var->history[0], var->history.size());
+            ImGui::PlotLines("", &var->history[0], static_cast<int>(var->history.size()));
           ImGui::NextColumn();
 
         }
@@ -374,10 +415,11 @@ namespace GraphicalDriver
     loggingWindows.push_back(window);
   }
 
-  void GUI::AddMap(std::string title, ColorMap map)
+  void GUI::AddMap(std::string title, ColorMap map, ColorMap::Function gridFn)
   {
     ColorMapWindow window;
     window.title = title;
+    window.function = gridFn;
     window.map = map;
     colorMapWindows.push_back(window);
   }
@@ -396,7 +438,14 @@ namespace GraphicalDriver
     window.onCheckCondition = onCheckCondition;
     window.onNotify = onNotify;   
     window.persistent = persistent;
-    notifications.push_back(window);
+    persistentNotifications.push_back(window);
+  }
+
+  void GUI::AddNotification(const std::string & title, bool & condition, NotificationWindow::MessageFunction messageFn, bool persistent)
+  {
+    auto conditionalFn = [&]() -> bool { return condition; };
+    AddNotification(title, conditionalFn, messageFn, persistent);
+
   }
 
 

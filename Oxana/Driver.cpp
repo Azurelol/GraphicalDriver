@@ -1,10 +1,10 @@
 // The graphical driver library
-#include "GraphicalDriver.h"
+#include "source/GraphicalDriver.h"
 
 // The user's custom configuration for this driver
-#include "user\User.h"
+#include "user/User.h"
 
-int main(int, char** argv)
+int main(int argc, char** argv)
 {
   // Used to configure the GUI
   GraphicalDriver::GUI::Settings settings;
@@ -13,7 +13,7 @@ int main(int, char** argv)
   GraphicalDriver::GUI gui(settings);
 
   // Add custom stuff by user
-  Customize(argv, gui, settings); 
+  Customize(argc, argv, gui); 
 
   // Run it!
   gui.Run();

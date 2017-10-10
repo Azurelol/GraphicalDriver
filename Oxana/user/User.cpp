@@ -8,7 +8,7 @@ using namespace GraphicalDriver;
 
 // ------------------------------
 
-void Customize(char** argv, GraphicalDriver::GUI & gui, GraphicalDriver::GUI::Settings & settings)
+void Customize(int argc, char** argv, GraphicalDriver::GUI & gui)
 {
   
 }

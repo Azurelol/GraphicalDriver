@@ -2,7 +2,8 @@
 
 #include "GraphicalDriverInclude.h"
 
-#include "Grid.h"
+#include "ColorMap.h"
+#include "Notification.h"
 
 namespace GraphicalDriver
 {
@@ -12,19 +13,18 @@ namespace GraphicalDriver
   {
     bool enabled;
     std::string title;
+    unsigned bufferSize;
     virtual void Draw(unsigned index) = 0;
     Window() : enabled(true) {}
   };
 
   struct LogWindow : Window
   {
-    std::deque<std::string> buffer;
-    unsigned bufferSize;
+    std::deque<std::string> buffer;    
     LogFunction function;
 
     void Update();
     void Draw(unsigned index) override;
-    std::string GetLog(unsigned step);
   };
 
   struct NotificationWindow : Window
@@ -44,7 +44,10 @@ namespace GraphicalDriver
 
   struct ColorMapWindow : Window
   {
+    std::deque<Grid> buffer;
+    ColorMap::Function function;
     ColorMap map;
+
     void Update();
     void Draw(unsigned index) override;
   };

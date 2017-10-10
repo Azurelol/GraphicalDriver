@@ -1,5 +1,5 @@
 #pragma once
 
-#include "..\GraphicalDriver.h"
+#include "..\source\GraphicalDriver.h"
 
-void Customize(char** argv, GraphicalDriver::GUI& gui, GraphicalDriver::GUI::Settings& settings);
+void Customize(int argc, char** argv, GraphicalDriver::GUI& gui);

@@ -1,40 +1,8 @@
 {
   "DataCollection": [
     {
-      "Id": "c75fa72a-59c6-4b17-b93d-82d052518aad",
-      "Command": "user/3x3.txt"
-    },
-    {
-      "Id": "beb55d86-0a16-4c81-9655-1cd277b4d1d2",
-      "Command": "user/2x2.txt"
-    },
-    {
-      "Id": "4f7682a3-4537-4431-836a-cbb04dca0afb",
-      "Command": "user/1.txt"
-    },
-    {
-      "Id": "e6d2f80a-b2c3-4397-9f7b-5407c050cb7f",
-      "Command": "user/2.txt"
-    },
-    {
-      "Id": "7f309eb2-03f6-4cc6-a72e-9c239553b9be",
-      "Command": "user/3.txt"
-    },
-    {
-      "Id": "262dec66-0303-4d89-9470-b0090e50f5d2",
-      "Command": "user/4.txt"
-    },
-    {
-      "Id": "3329e9af-2248-456b-aacb-98d5a9137fab",
-      "Command": "user/5.txt"
-    },
-    {
-      "Id": "5df67f37-eb58-4058-87db-a10e5e6acb80",
-      "Command": "user/6.txt"
-    },
-    {
-      "Id": "3ee18837-8339-4a91-bdf1-7d250644f3fd",
-      "Command": "user/9.txt"
+      "Id": "f47d2fc8-01f9-4be7-8d8c-1b81f2f4bba6",
+      "Command": "user/Input.txt"
     }
   ]
 }

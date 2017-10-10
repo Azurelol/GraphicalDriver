@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{EE770A55-8920-4E7B-AD95-76D58E8A7673}</ProjectGuid>
-    <RootNamespace>Assignment2_vacuumcleaner_gui</RootNamespace>
+    <RootNamespace>Oxana</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>Oxana</ProjectName>
   </PropertyGroup>
@@ -85,21 +85,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Driver.cpp" />
-    <ClCompile Include="GraphicalDriver.cpp" />
     <ClCompile Include="include\ImGui\imgui-SFML.cpp" />
     <ClCompile Include="include\ImGui\imgui.cpp" />
     <ClCompile Include="include\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="source\GraphicalDriver.cpp" />
+    <ClCompile Include="source\Window.cpp" />
     <ClCompile Include="user\User.cpp" />
-    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GraphicalDriver.h" />
-    <ClInclude Include="GraphicalDriverInclude.h" />
-    <ClInclude Include="Grid.h" />
     <ClInclude Include="include\ImGui\imconfig.h" />
+    <ClInclude Include="source\ColorMap.h" />
+    <ClInclude Include="source\GraphicalDriver.h" />
+    <ClInclude Include="source\GraphicalDriverInclude.h" />
+    <ClInclude Include="source\Grid.h" />
+    <ClInclude Include="source\Notification.h" />
+    <ClInclude Include="source\WatchVariable.h" />
+    <ClInclude Include="source\Window.h" />
     <ClInclude Include="user\User.h" />
-    <ClInclude Include="WatchVariable.h" />
-    <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

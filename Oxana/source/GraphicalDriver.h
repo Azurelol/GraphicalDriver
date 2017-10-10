@@ -41,10 +41,11 @@ namespace GraphicalDriver
     void Run();
     // Notifies the user when a given condition is true, printing a message
     void AddNotification(const std::string& title, NotificationWindow::ConditionalFunction conditionFn, NotificationWindow::MessageFunction messageFn, bool persistent = false);
+    void AddNotification(const std::string& title, bool& condition, NotificationWindow::MessageFunction messageFn, bool persistent = false);
     // Adds a custom logging window
     void AddLog(std::string title, LogFunction printFn);
     // Adds a custom map window
-    void AddMap(std::string title, ColorMap  map);
+    void AddMap(std::string title, ColorMap map, ColorMap::Function gridFn);
     // Tracks a variable (by having the user provide a reference to it)
     template <typename ReferenceType>
     void Watch(std::string name, ReferenceType* variable)
@@ -63,18 +64,28 @@ namespace GraphicalDriver
     }
 
     private:    
+    enum class StepType
+    {
+      Once,
+      Multiple,
+      Forward,
+      Backward,      
+    };
+
     // ------------------ Members ----------------/
-    sf::RenderWindow window;
+    std::unique_ptr<sf::RenderWindow> window;
     FILE* outputFile;
     std::stringstream outputStream;
     ImGuiTextBuffer log;
 
+    // Notifications
+    std::vector<NotificationWindow> persistentNotifications;
+
     // @TODO: Use inheritance instead with virtual draw method?
     std::vector<LogWindow> loggingWindows;
-    std::vector<NotificationWindow> notifications;
     std::vector<ColorMapWindow> colorMapWindows;
     std::vector<std::shared_ptr<WatchVariableBase>> watchVariables;
-    std::vector<std::shared_ptr<PlotVariableBase>> plotVariables;;
+    std::vector<std::shared_ptr<PlotVariableBase>> plotVariables;;    
 
     unsigned steps;
     int currentStep;
@@ -85,6 +96,8 @@ namespace GraphicalDriver
     void Update();
     void OnStep();
     void Draw();
+    void Step(const StepType& type);
+    void OnInput(sf::Keyboard::Key key);
 
     void DrawControls();
     void DrawGrid();
@@ -97,6 +110,7 @@ namespace GraphicalDriver
     
     void SynchronizeBuffers();
     void RecordVariables();
+
 
 
   };
