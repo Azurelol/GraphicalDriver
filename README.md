@@ -90,3 +90,8 @@ This custom notification was added by the following code:
 - **QOL**: Added hotkeys for stepping forward, backward, next, and multiple. These are the left, right and down arrow keys by defaults.
 - **Grid display**: You can now request the driver to draw you the current state of a grid by supplying a function that will provide it per step, as well as a table that will map specific integer indices to colors.
 - **Notifications**: You can now set up custom notifications for specific events in your simulation. For example:
+
+## Dependencies ##
+- [dear imgui](https://github.com/ocornut/imgui): Dear ImGui is a bloat-free graphical user interface library for C++. It outputs optimized vertex buffers that you can render anytime in your 3D-pipeline enabled application. It is fast, portable, renderer agnostic and self-contained (no external dependencies) It is  designed to enable fast iteration and empower programmers to create content creation tools and visualization/ debug tools (as opposed to UI for the average end-user). It favors simplicity and productivity toward this goal, and thus lacks certain features normally found in more high-level libraries.
+- [SFML](https://github.com/SFML/SFML): A simple, fast, cross-platform and object-oriented multimedia API. It provides access to windowing, graphics, audio and network. It is written in C++, and has bindings for various languages such as C, .Net, Ruby, Python.
+- [imgui-sfml](https://github.com/eliasdaler/imgui-sfml): An excellent wrapper library for using SFML with 'dear imgui'.
