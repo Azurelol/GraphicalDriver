@@ -10,43 +10,25 @@
     <ClCompile Include="include\ImGui\imgui_draw.cpp">
       <Filter>Dependencies</Filter>
     </ClCompile>
-    <ClCompile Include="user\User.cpp">
-      <Filter>User</Filter>
-    </ClCompile>
     <ClCompile Include="Driver.cpp" />
-    <ClCompile Include="source\GraphicalDriver.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="source\Window.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
+    <ClCompile Include="include\Oxana\NodeDisplayWindow.cpp" />
+    <ClCompile Include="include\Oxana\Oxana.cpp" />
+    <ClCompile Include="include\Oxana\Window.cpp" />
+    <ClCompile Include="include\Oxana\Example\SimpleExample.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ImGui\imconfig.h">
       <Filter>Dependencies</Filter>
     </ClInclude>
-    <ClInclude Include="user\User.h">
-      <Filter>User</Filter>
-    </ClInclude>
-    <ClInclude Include="source\GraphicalDriver.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\GraphicalDriverInclude.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Grid.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\WatchVariable.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Window.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\ColorMap.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Notification.h" />
+    <ClInclude Include="include\Oxana\ColorMap.h" />
+    <ClInclude Include="include\Oxana\GraphicalDriverInclude.h" />
+    <ClInclude Include="include\Oxana\NodeDisplay.h" />
+    <ClInclude Include="include\Oxana\Notification.h" />
+    <ClInclude Include="include\Oxana\Oxana.h" />
+    <ClInclude Include="include\Oxana\Utilities.h" />
+    <ClInclude Include="include\Oxana\WatchVariable.h" />
+    <ClInclude Include="include\Oxana\Window.h" />
+    <ClInclude Include="include\Oxana\Example\Examples.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="User">
@@ -55,7 +37,7 @@
     <Filter Include="Dependencies">
       <UniqueIdentifier>{35dcf7f1-26ed-4514-a5a7-957f3b0c66c3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source">
+    <Filter Include="Oxana">
       <UniqueIdentifier>{f3b0d9f4-d9f1-448d-b290-afb55a1152f2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>

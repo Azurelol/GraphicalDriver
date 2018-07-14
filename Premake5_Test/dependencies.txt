@@ -1,0 +1,24 @@
+PREPROCESSOR DEFINES:
+SFML_STATIC
+
+DEBUG: 
+sfml-main-d.lib
+sfml-graphics-s-d.lib
+sfml-window-s-d.lib
+sfml-system-s-d.lib
+opengl32.lib
+winmm.lib
+gdi32.lib
+freetype.lib
+jpeg.lib
+
+RELEASE:
+sfml-main-d.lib
+sfml-graphics-s.lib
+sfml-window-s.lib
+sfml-system-s.lib
+opengl32.lib
+winmm.lib
+gdi32.lib
+freetype.lib
+jpeg.lib
