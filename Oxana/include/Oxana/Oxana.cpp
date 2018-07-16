@@ -1,489 +1,462 @@
 #include "Oxana.h"
 
-static void ShowExampleAppFixedOverlay(bool* p_open)
-{
-  enum Corner { TopLeft, TopRight, BottomLeft, BottomRight };
-  const float DISTANCE = 10.0f;
-  static int corner = 0;
-  ImVec2 window_pos = ImVec2((corner & 1) ? ImGui::GetIO().DisplaySize.x - DISTANCE : DISTANCE, (corner & 2) ? ImGui::GetIO().DisplaySize.y - DISTANCE : DISTANCE);
-  ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
-  ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.3f));
-  if (ImGui::Begin("Example: Fixed Overlay", p_open, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
-  {
-    ImGui::Text("Simple overlay\nin the corner of the screen.\n(right-click to change position)");
-    ImGui::Separator();
-    ImGui::Text("Mouse Position: (%.1f,%.1f)", ImGui::GetIO().MousePos.x, ImGui::GetIO().MousePos.y);
-    if (ImGui::BeginPopupContextWindow())
-    {
-      if (ImGui::MenuItem("Top-left", NULL, corner == 0)) corner = TopLeft;
-      if (ImGui::MenuItem("Top-right", NULL, corner == 1)) corner = TopRight;
-      if (ImGui::MenuItem("Bottom-left", NULL, corner == 2)) corner = BottomLeft;
-      if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = BottomRight;
-      ImGui::EndPopup();
-    }
-    ImGui::End();
-  }
-  ImGui::PopStyleColor();
-}
-
-
 #define IM_ARRAYSIZE(_ARR)  ((int)(sizeof(_ARR)/sizeof(*_ARR)))
 
 namespace Oxana
 {
-  GUI::GUI(const Settings & settings) :settings(settings), steps(0), currentStep(steps), isAutomatic(false)
-  {
-  }
-
-  GUI::Settings::Settings() :
-    title("Graphical Driver"),
-    framerate(60),
-    width(1024),
-    height(768),
-    background(sf::Color(152, 152, 152, 255)),
-    showSTDOUT(false),
-    stdoutCaptureFile("GDOutput.txt"),
-    stepBufferSize(100),
-    showOverlay(true),
-    stepMultiplier(5)
-  {
-  }
-
-
-  void GUI::Initialize()
-  {    
-    window = std::make_unique<sf::RenderWindow>(sf::VideoMode(settings.width, settings.height), settings.title);
-    window->setKeyRepeatEnabled(false);
-    ImGui::SFML::Init(*window);
-    outputFile = std::freopen(settings.stdoutCaptureFile.c_str(), "w+", stdout);
-    // If a validate function has been provided, invoke it at the end
-    if (settings.onValidate) AddNotification("Validation", isDone, settings.onValidate);    
-    RecordVariables();
-    SynchronizeBuffers();
-  }
-
-  void GUI::Shutdown()
-  {
-    // Once the window has closed, shutdown
-    std::fclose(stdout);
-    ImGui::SFML::Shutdown();
-  }
-
-  void GUI::SynchronizeBuffers()
-  {
-    for (auto& plot : plotVariables)
-    {
-      plot->bufferSize = settings.stepBufferSize;
-      plot->history.reserve(plot->bufferSize);
-    }
-
-    for (auto& log : loggingWindows)
-    {
-      log.bufferSize = settings.stepBufferSize;
-    }
-
-    for (auto& window : windows)
-    {
-      window->bufferSize = settings.stepBufferSize;
-    }
-  }
-
-  void GUI::RecordVariables()
-  {
-    // Record all variables as needed
-    for (auto& var : plotVariables)
-    {
-      var->Record();
-    }
-    for (auto& var : watchVariables)
-    {
-      var->Record();
-    }
-  }
-
-
-  void GUI::Run()
-  {
-    Initialize();
-
-    sf::Clock deltaClock;
-
-    while (window->isOpen())
-    {
-      sf::Event event;      
-      while (window->pollEvent(event))
-      {
-        ImGui::SFML::ProcessEvent(event);
-        if (event.type == sf::Event::Closed)
-          window->close();
-        if (event.type == sf::Event::KeyPressed)
-          OnInput(event.key.code);
-      }
-
-      ImGui::SFML::Update(*window, deltaClock.restart());
-      Update();
-
-      window->clear(settings.background);
-      ImGui::SFML::Render(*window);
-      window->display();
-    }
-
-    Shutdown();
-  }
-
-
-  void GUI::Update()
-  {
-    if (isAutomatic)
-      OnStep();
-
-    Draw();
-  }
-
-  void GUI::OnStep()
-  {
-    if (isDone)
-      return;
-
-    if (!settings.onStep)
-    {
-      return;
-    }
-
-    isDone = !settings.onStep();
-    if (isDone)
-      OnFinished();    
-
-    steps++;
-    currentStep = steps;
-
-    // Update all windows
-    for (auto& log : loggingWindows)    
-      log.Update();    
-
-    for (auto& colorMap : colorMapWindows)
-      colorMap.Update();
-
-    for (auto& notification : persistentNotifications)
-    {
-      notification.Update();  
-      if (notification.enabled)
-        this->isAutomatic = false;
-    }
-
-    for (auto& window : windows)
-      window->Update();
-
-    RecordVariables();
-  }
-
-  void GUI::Draw()
-  {
-    
-    DrawWatcher();
-    DrawOverlay();
-
-    if (steps < 1)
-      return;
-
-    int bufferIndex = currentStep - 1;
-    const int offset = steps - settings.stepBufferSize;
-    if (offset > 0)
-      bufferIndex = std::max(bufferIndex - offset, 0);
-
-    // Draw all windows
-
-    for (auto& window : loggingWindows)
-      window.Draw((unsigned) bufferIndex);
-
-    for (auto& window : colorMapWindows)
-      window.Draw((unsigned) bufferIndex);
-
-    for (auto& notification : persistentNotifications)
-      notification.Draw((unsigned) bufferIndex);
-
-    for (auto& window : windows)
-      window->Draw((unsigned) bufferIndex);
-   
-
-  }
-
-  void GUI::Step(const StepType & type)
-  {
-    const int min = (steps > settings.stepBufferSize) ? steps - settings.stepBufferSize + 1 : 1;
-    const int max = steps;
-    switch (type)
-    {
-      case StepType::Once:
-        OnStep();
-        break;
-      case StepType::Multiple:
-        for (int i = 0; i < settings.stepMultiplier; ++i)
-          OnStep();
-        break;
-      case StepType::Forward:
-        if (currentStep < max)
-          currentStep++;
-        break;
-      case StepType::Backward:
-        if (currentStep > min)
-          currentStep--;
-        break;
-    }
-  }
-
-  void GUI::OnInput(sf::Keyboard::Key key)
-  {
-    const int min = (steps > settings.stepBufferSize) ? steps - settings.stepBufferSize + 1 : 1;
-    const int max = steps;
-
-    switch (key)
-    {
-      case sf::Keyboard::Left:      
-        Step(StepType::Backward);
-        break;
-      case sf::Keyboard::Right:
-        Step(StepType::Forward);
-        break;
-      case sf::Keyboard::Up:
-        Step(StepType::Once);
-        break;
-      case sf::Keyboard::Space:
-        Step(StepType::Multiple);
-        break;
-    }
-  }
-
-  void GUI::OnFinished()
-  {
-    
-  }
-
-  void GUI::DrawControls()
-  {
-    // Controls the 'CurrentStep' slider
-    const int min = (steps > settings.stepBufferSize) ? steps - settings.stepBufferSize + 1 : 1;
-    const int max = steps;
-
-    ImGui::TextColored(sf::Color::Red, "Steps");
-    ImGui::Text(std::string("- Total: " + std::to_string(steps)).c_str());
-    ImGui::Text(std::string("- Buffer size: " + std::to_string(settings.stepBufferSize)).c_str());
-    ImGui::Text(std::string("- Step Multiplier: " + std::to_string(settings.stepMultiplier)).c_str());
-
-    ImGui::Separator();
-    ImGui::BeginGroup();
-
-    if (ImGui::Button("Auto"))
-    {
-      isAutomatic = !isAutomatic;
-    }
-    ImGui::SameLine();
-
-    // Take steps
-    {
-      if (ImGui::Button("Step Once"))
-        Step(StepType::Once);
-
-      ImGui::SameLine();
-      if (ImGui::Button("Step Multiple"))      
-        Step(StepType::Multiple);       
-      
-    }
-    ImGui::EndGroup();
-
-    // Timeline
-    if (steps > 0)
-    {
-      if (ImGui::Button("Backward"))      
-        Step(StepType::Backward);      
-      ImGui::SameLine();
-      ImGui::SliderInt("", &currentStep, min, max);
-      ImGui::SameLine();
-      if (ImGui::Button("Forward"))      
-        Step(StepType::Forward);      
-    }
-  }
-
-  void GUI::DrawGrid()
-  {
-    ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Example Grid");
-    {
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      const int rows = 4;
-      const int cols = 4;
-      const ImVec2 screenSize = ImGui::GetWindowSize();
-      const ImVec2 cellSize(screenSize.x / cols, screenSize.y / rows);
-      static ImVec4 col(1.0f, 1.0f, 0.4f, 1.0f);
-      const ImU32 col32 = ImColor(col);
-      const float spacing = 2.0f;
-      float sz = 64.0f;
-      const ImVec2 p = ImGui::GetCursorScreenPos();
-
-      float y = p.y + 4.0f;
-      for (int i = 0; i < rows; ++i)
-      {
-        float x = p.x + 4.0f;
-        for (int j = 0; j < cols; ++j)
-        {
-          draw_list->AddRectFilled(ImVec2(x, y), ImVec2(x + sz, y + sz), col32); 
-          x += sz + spacing;            
-        }        
-        y += sz + spacing;
-      }
-
-      // Now use a dummy to separate
-      ImGui::Dummy(ImVec2((sz + spacing) * cols, (sz + spacing * 2) * rows));
-      ImGui::Separator();
-      ImGui::Text("data here...");
-    }
-    ImGui::End();
-  }
-
-  void GUI::DrawSTDOUT()
-  {
-    if (!settings.showSTDOUT)
-      return;
-  }
-
-  void GUI::DrawOverlay()
-  {
-    static bool show = true;
-
-    enum Corner { TopLeft, TopRight, BottomLeft, BottomRight };
-    const float DISTANCE = 20.0f;
-    static int corner = BottomLeft;
-    ImVec2 window_pos = ImVec2((corner & 1) ? ImGui::GetIO().DisplaySize.x - DISTANCE : DISTANCE, (corner & 2) ? ImGui::GetIO().DisplaySize.y - DISTANCE : DISTANCE);
-    ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
-    ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
-    if (ImGui::Begin("Controls", &show, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
-    {
-      DrawControls();
-      if (ImGui::BeginPopupContextWindow())
-      {
-        if (ImGui::MenuItem("Top-left", NULL, corner == 0)) corner = TopLeft;
-        if (ImGui::MenuItem("Top-right", NULL, corner == 1)) corner = TopRight;
-        if (ImGui::MenuItem("Bottom-left", NULL, corner == 2)) corner = BottomLeft;
-        if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = BottomRight;
-        ImGui::EndPopup();
-      }
-      ImGui::End();
-    }
-    ImGui::PopStyleColor();
-
-  }
-
-  void GUI::DrawWatcher()
-  {
-    if (watchVariables.empty() && plotVariables.empty())
-      return;
-
-    ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Watcher");
-    {
-      // Watch      
-      if (!watchVariables.empty())
-      {
-        ImGui::Columns(2);
-
-        // Header
-        ImGui::TextColored(sf::Color::Red, "Name");
-        ImGui::NextColumn();
-        ImGui::TextColored(sf::Color::Yellow, "Value");
-        ImGui::NextColumn();
-        ImGui::Separator();
-
-        for (auto& var : watchVariables)
-        {
-          ImGui::Text(var->name.c_str());
-          ImGui::NextColumn();
-          ImGui::Text(var->lastValueToString.c_str());
-          ImGui::NextColumn();
-        }
-
-
-        ImGui::Columns(1);
-        ImGui::NewLine();
-      }
-
-      // Plots
-      if (!plotVariables.empty())
-      {
-        ImGui::Columns(3);
-        // Header
-        {
-          ImGui::TextColored(sf::Color::Red, "Name");
-          ImGui::NextColumn();
-          ImGui::TextColored(sf::Color::Yellow, "Value");
-          ImGui::NextColumn();
-          ImGui::TextColored(sf::Color::Yellow, "Plot");
-          ImGui::NextColumn();
-          ImGui::Separator();
-        }
-
-        for (auto& var : plotVariables)
-        {
-          // Name
-          ImGui::Text(var->name.c_str());
-          ImGui::NextColumn();
-          // Value
-          ImGui::Text(var->lastValueToString.c_str());
-          ImGui::NextColumn();
-          // Plot
-          if (!var->history.empty())
-            ImGui::PlotLines("", &var->history[0], static_cast<int>(var->history.size()));
-          ImGui::NextColumn();
-
-        }
-      }
-    }
-
-    ImGui::Columns(1);
-    ImGui::End();
-  }
-
-  void GUI::AddLog(std::string title, LogFunction printFn)
-  {
-    LogWindow window;
-    window.title = title;
-    window.function = printFn;
-    loggingWindows.push_back(window);
-  }
-
-  void GUI::AddMap(std::string title, ColorMap map, ColorMap::Function gridFn)
-  {
-    ColorMapWindow window;
-    window.title = title;
-    window.function = gridFn;
-    window.map = map;
-    colorMapWindows.push_back(window);
-  }
-
-  void GUI::Watch(std::string name, LogFunction printValueFn)
-  {
-    PrintVariableValue printVariable(name, printValueFn);
-    watchVariables.push_back(std::make_shared<PrintVariableValue>(printVariable));
-  }
-
-  void GUI::AddNotification(const std::string& title, NotificationWindow::ConditionalFunction onCheckCondition, NotificationWindow::MessageFunction onNotify, bool persistent)
-  {
-    NotificationWindow window;
-    window.enabled = false;
-    window.title = title;
-    window.onCheckCondition = onCheckCondition;
-    window.onNotify = onNotify;   
-    window.persistent = persistent;
-    persistentNotifications.push_back(window);
-  }
-
-  void GUI::AddNotification(const std::string & title, bool & condition, NotificationWindow::MessageFunction messageFn, bool persistent)
-  {
-    auto conditionalFn = [&]() -> bool { return condition; };
-    AddNotification(title, conditionalFn, messageFn, persistent);
-
-  }
-
+	GUI::GUI(const Settings & settings) :settings(settings)
+	{
+	}
+
+	GUI::Settings::Settings() :
+		title("Graphical Driver"),
+		framerate(60),
+		width(1024),
+		height(768),
+		background(sf::Color(152, 152, 152, 255)),
+		showSTDOUT(false),
+		stdoutCaptureFile("GDOutput.txt"),
+		showOverlay(true)
+	{
+	}
+
+	void GUI::Initialize()
+	{
+		this->Assert();
+		window = std::make_unique<sf::RenderWindow>(sf::VideoMode(settings.width, settings.height), settings.title);
+		window->setKeyRepeatEnabled(false);
+		ImGui::SFML::Init(*window);
+		//outputFile = std::freopen(settings.stdoutCaptureFile.c_str(), "w+", stdout);
+		//this->Set(&this->simulations[0]);
+	}
+
+	void GUI::Shutdown()
+	{
+		// Once the window has closed, shutdown
+		std::fclose(stdout);
+		ImGui::SFML::Shutdown();
+	}
+
+	void GUI::Assert()
+	{
+		for (auto& simulation : simulations)
+		{
+
+		}
+
+		for (auto& test : tests)
+		{
+
+		}
+	}
+
+	void GUI::Set(Simulation * simulation)
+	{
+		this->currentSimulation = simulation;
+		this->showResult = false;
+		this->currentSimulation->onDone = [&]() { this->showResult = true; };
+		this->currentSimulation->Initialize();
+	}
+
+	void GUI::Run(Test * test)
+	{
+		test->Run();
+		test->enabled = true;
+	}
+	
+	void GUI::Run()
+	{
+		Initialize();
+
+		sf::Clock deltaClock;
+
+		while (window->isOpen())
+		{
+			sf::Event event;
+			while (window->pollEvent(event))
+			{
+				ImGui::SFML::ProcessEvent(event);
+				if (event.type == sf::Event::Closed)
+					window->close();
+				if (event.type == sf::Event::KeyPressed)
+					OnInput(event.key.code);
+			}
+
+			ImGui::SFML::Update(*window, deltaClock.restart());
+			Update();
+
+			window->clear(settings.background);
+			ImGui::SFML::Render(*window);
+			window->display();
+		}
+
+		Shutdown();
+	}
+
+
+	void GUI::Add(Simulation simulation)
+	{
+		simulations.push_back(simulation);
+	}
+
+	void GUI::Add(Test test)
+	{
+		tests.push_back(test);
+	}
+
+	void GUI::Update()
+	{
+		if (this->currentSimulation && this->currentSimulation->isAutomatic)
+			this->currentSimulation->OnStep();
+
+		this->Draw();
+	}
+
+	void GUI::Draw()
+	{
+		DrawMenu();
+		DrawTests();
+
+		if (currentSimulation != nullptr)
+			DrawSimulation();
+	}
+
+	void GUI::OnInput(sf::Keyboard::Key key)
+	{
+		switch (key)
+		{
+			case sf::Keyboard::Left:
+				this->currentSimulation->Step(StepType::Backward);
+				break;
+			case sf::Keyboard::Right:
+				this->currentSimulation->Step(StepType::Forward);
+				break;
+			case sf::Keyboard::Up:
+				this->currentSimulation->Step(StepType::Once);
+				break;
+			case sf::Keyboard::Space:
+				this->currentSimulation->Step(StepType::Multiple);
+				break;
+		}
+	}
+
+	void GUI::DrawMenu()
+	{
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("Simulations"))
+			{
+				for (auto& simulation : this->simulations)
+				{
+					if (ImGui::MenuItem(simulation.name.c_str())) {
+						this->Set(&simulation);
+					}
+				}
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Tests"))
+			{
+				for (auto& test : this->tests)
+				{
+					if (ImGui::MenuItem(test.name.c_str())) {
+						this->Run(&test);
+					}
+				}
+
+				ImGui::EndMenu();
+			}
+			ImGui::EndMainMenuBar();
+		}
+	}
+
+	void GUI::DrawControls()
+	{
+		const int min = this->currentSimulation->Min();
+		const int max = this->currentSimulation->Max();
+
+		ImGui::TextColored(sf::Color::Red, "Steps");
+		ImGui::Text(std::string("- Total: " + std::to_string(this->currentSimulation->steps)).c_str());
+		ImGui::Text(std::string("- Buffer size: " + std::to_string(this->currentSimulation->stepBufferSize)).c_str());
+		ImGui::Text(std::string("- Step Multiplier: " + std::to_string(this->currentSimulation->stepMultiplier)).c_str());
+
+		ImGui::Separator();
+		ImGui::BeginGroup();
+		{
+			if (ImGui::Button("Auto"))			
+				this->currentSimulation->isAutomatic = !this->currentSimulation->isAutomatic;			
+			ImGui::SameLine();
+
+			// Take steps
+			if (ImGui::Button("Step Once"))
+				this->currentSimulation->Step(StepType::Once);
+			ImGui::SameLine();
+
+			if (ImGui::Button("Step Multiple"))
+				this->currentSimulation->Step(StepType::Multiple);
+			ImGui::SameLine();
+
+			if (ImGui::Button("Reset"))
+				this->currentSimulation->Reset();
+		}
+		ImGui::EndGroup();
+
+		// Timeline
+		if (this->currentSimulation->steps > 0)
+		{
+			if (ImGui::Button("Backward"))
+				this->currentSimulation->Step(StepType::Backward);
+			ImGui::SameLine();
+			ImGui::SliderInt("", &this->currentSimulation->currentStep, min, max);
+			ImGui::SameLine();
+			if (ImGui::Button("Forward"))
+				this->currentSimulation->Step(StepType::Forward);
+		}
+	}
+
+	void GUI::DrawGrid()
+	{
+		ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Example Grid");
+		{
+			ImDrawList* draw_list = ImGui::GetWindowDrawList();
+			const int rows = 4;
+			const int cols = 4;
+			const ImVec2 screenSize = ImGui::GetWindowSize();
+			const ImVec2 cellSize(screenSize.x / cols, screenSize.y / rows);
+			static ImVec4 col(1.0f, 1.0f, 0.4f, 1.0f);
+			const ImU32 col32 = ImColor(col);
+			const float spacing = 2.0f;
+			float sz = 64.0f;
+			const ImVec2 p = ImGui::GetCursorScreenPos();
+
+			float y = p.y + 4.0f;
+			for (int i = 0; i < rows; ++i)
+			{
+				float x = p.x + 4.0f;
+				for (int j = 0; j < cols; ++j)
+				{
+					draw_list->AddRectFilled(ImVec2(x, y), ImVec2(x + sz, y + sz), col32);
+					x += sz + spacing;
+				}
+				y += sz + spacing;
+			}
+
+			// Now use a dummy to separate
+			ImGui::Dummy(ImVec2((sz + spacing) * cols, (sz + spacing * 2) * rows));
+			ImGui::Separator();
+			ImGui::Text("data here...");
+		}
+		ImGui::End();
+	}
+
+	void GUI::DrawTests()
+	{
+		// Draw any executed tests
+		for (auto& test : this->tests)
+		{
+			if (test.enabled)
+				DrawTest(test);
+				//test.window.Draw(0);
+		}
+	}
+
+	void GUI::DrawTest(Test & test)
+	{
+		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
+		if (!ImGui::Begin(test.name.c_str(), &test.enabled)) 
+		{
+			ImGui::End();
+			return;
+		}
+
+		//static ImGuiTextBuffer log;
+		ImGui::TextUnformatted(test.output.c_str());
+		ImGui::End();
+	}
+
+	void GUI::DrawSimulation()
+	{
+		DrawWatcher();
+		DrawVariableEditor();
+		DrawOverlay();
+
+		// If no steps have been taken, don't draw
+		//if (this->currentSimulation->steps < 1)
+		//	return;
+		
+		// Draw Simulation
+
+		//int bufferIndex = this->currentSimulation->currentStep - 1;
+		//const int offset = this->currentSimulation->steps - this->currentSimulation->stepBufferSize;
+		//if (offset > 0)
+		//	bufferIndex = std::max(bufferIndex - offset, 0);
+		//if (bufferIndex < 0)
+		//	bufferIndex = 0;
+
+		int bufferIndex = this->currentSimulation->currentStep;
+		// Draw all windows
+		//for (auto& window : this->currentSimulation->loggingWindows)
+		//	window.Draw((unsigned)bufferIndex);
+		//
+		//for (auto& window : this->currentSimulation->colorMapWindows)
+		//	window.Draw((unsigned)bufferIndex);
+		//
+		//for (auto& notification : this->currentSimulation->persistentNotifications)
+		//	notification.Draw((unsigned)bufferIndex);
+
+		for (auto& window : this->currentSimulation->windows)
+			window->Draw((unsigned)bufferIndex);
+
+		static const std::string resultTitle = "Result";
+		static bool askNext = false;
+		NotificationWindow::Draw(this->showResult, resultTitle, this->currentSimulation->resultLog, askNext);
+	}
+
+	void GUI::DrawSTDOUT()
+	{
+		if (!settings.showSTDOUT)
+			return;
+	}
+
+	void GUI::DrawOverlay()
+	{
+		static bool show = true;
+
+		enum Corner { TopLeft, TopRight, BottomLeft, BottomRight };
+		const float DISTANCE = 20.0f;
+		static int corner = BottomLeft;
+		ImVec2 window_pos = ImVec2((corner & 1) ? ImGui::GetIO().DisplaySize.x - DISTANCE : DISTANCE, (corner & 2) ? ImGui::GetIO().DisplaySize.y - DISTANCE : DISTANCE);
+		ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+		if (ImGui::Begin("Controls", &show, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings))
+		{
+			DrawControls();
+			if (ImGui::BeginPopupContextWindow())
+			{
+				if (ImGui::MenuItem("Top-left", NULL, corner == 0)) corner = TopLeft;
+				if (ImGui::MenuItem("Top-right", NULL, corner == 1)) corner = TopRight;
+				if (ImGui::MenuItem("Bottom-left", NULL, corner == 2)) corner = BottomLeft;
+				if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = BottomRight;
+				ImGui::EndPopup();
+			}
+			ImGui::End();
+		}
+		ImGui::PopStyleColor();
+
+	}
+
+	void GUI::DrawWatcher()
+	{
+		if (this->currentSimulation->watchVariables.empty() && this->currentSimulation->plotVariables.empty())
+			return;
+
+		//ImGui::SetNextWindowSize()
+		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Watcher");
+		{
+			// Watch      
+			if (!this->currentSimulation->watchVariables.empty())
+			{
+				ImGui::Columns(2);
+
+				// Header
+				ImGui::TextColored(sf::Color::Red, "Name");
+				ImGui::NextColumn();
+				ImGui::TextColored(sf::Color::Yellow, "Value");
+				ImGui::NextColumn();
+				ImGui::Separator();
+
+				for (auto& var : this->currentSimulation->watchVariables)
+				{
+					ImGui::Text(var->name.c_str());
+					ImGui::NextColumn();
+					ImGui::Text(var->lastValueToString.c_str());
+					ImGui::NextColumn();
+				}
+
+
+				ImGui::Columns(1);
+				ImGui::NewLine();
+			}
+
+			// Plots
+			if (!this->currentSimulation->plotVariables.empty())
+			{
+				ImGui::Columns(3);
+				// Header
+				{
+					ImGui::TextColored(sf::Color::Red, "Name");
+					ImGui::NextColumn();
+					ImGui::TextColored(sf::Color::Yellow, "Value");
+					ImGui::NextColumn();
+					ImGui::TextColored(sf::Color::Yellow, "Plot");
+					ImGui::NextColumn();
+					ImGui::Separator();
+				}
+
+				for (auto& var : this->currentSimulation->plotVariables)
+				{
+					// Name
+					ImGui::Text(var->name.c_str());
+					ImGui::NextColumn();
+					// Value
+					ImGui::Text(var->lastValueToString.c_str());
+					ImGui::NextColumn();
+					// Plot
+					if (!var->history.empty())
+						ImGui::PlotLines("", &var->history[0], static_cast<int>(var->history.size()));
+					ImGui::NextColumn();
+
+				}
+			}
+		}
+
+		ImGui::Columns(1);
+		ImGui::End();
+	}
+
+	void GUI::DrawVariableEditor()
+	{
+		if (!this->currentSimulation->HasEditableVariables())
+			return;
+
+		ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Variable Editor");
+		{
+			if (!this->currentSimulation->editableFloatVariables.empty())
+			{
+				for (auto& var : this->currentSimulation->editableFloatVariables)
+				{
+					if (var.slider)
+						ImGui::SliderFloat(var.label.c_str(), var.value, var.min, var.max);
+					else
+						ImGui::InputFloat(var.label.c_str(), var.value);
+				}
+			}
+
+			if (!this->currentSimulation->editableIntVariables.empty())
+			{
+				for (auto& var : this->currentSimulation->editableIntVariables)
+				{
+					if (var.slider)
+						ImGui::SliderInt(var.label.c_str(), var.value, var.min, var.max);
+					else
+						ImGui::InputInt(var.label.c_str(), var.value);
+				}
+			}
+
+			if (!this->currentSimulation->editableBoolVariables.empty())
+			{
+				for (auto& var : this->currentSimulation->editableBoolVariables)
+				{
+					ImGui::Checkbox(var.label.c_str(), var.value);
+				}
+			}
+		}
+		ImGui::End();
+	}
 
 }

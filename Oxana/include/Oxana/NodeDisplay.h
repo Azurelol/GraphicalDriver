@@ -1,5 +1,5 @@
 #pragma once
-#include "GraphicalDriverInclude.h"
+#include "Include.h"
 
 namespace Oxana
 { 
@@ -12,11 +12,21 @@ namespace Oxana
       Description nodeData;
       Description parentData;
       std::vector<Description> childrenData;
+
+			void Clear() {
+				nodeData = Description();
+				parentData = Description();
+			  childrenData.clear();
+			}
     };
 
     // The latest node data
     Data latest;
     virtual void Record() = 0;
+		void Clear() 
+		{
+			latest.Clear();
+		}
   };
 
   // Contains relevant information for how to display a node

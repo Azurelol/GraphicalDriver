@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GraphicalDriverInclude.h"
+#include "Include.h"
 
 #include "ColorMap.h"
 #include "Notification.h"
@@ -17,6 +17,7 @@ namespace Oxana
     unsigned bufferSize;
     virtual void Draw(unsigned index) = 0;
     virtual void Update() = 0;
+		virtual void Reset() = 0;
     Window() : enabled(true) {}
   };
 
@@ -26,6 +27,7 @@ namespace Oxana
     LogFunction function;
 
     void Update();
+		void Reset();
     void Draw(unsigned index) override;
   };
 
@@ -40,17 +42,20 @@ namespace Oxana
     bool persistent;
     bool hasActivated;
 
-    void Draw(unsigned index);
     void Update();
+		void Reset();
+    void Draw(unsigned index);
+		static void Draw(bool& enabled, const std::string& title, const std::string& message, bool& persistent);
   };
 
   struct ColorMapWindow : Window
   {
-    std::deque<Grid> buffer;
+    std::deque<ColorMap::ColorGrid> buffer;
     ColorMap::Function function;
     ColorMap map;
 
     void Update();
+		void Reset();
     void Draw(unsigned index) override;
   };
 
@@ -60,6 +65,7 @@ namespace Oxana
     std::unique_ptr<NodeDisplay> display;
 
     void Update();
+		void Reset();
     void Draw(unsigned index) override;
   };
 

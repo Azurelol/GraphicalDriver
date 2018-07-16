@@ -6,10 +6,14 @@
 #include <climits>
 #include <cstdint>
 #include <type_traits>
-#include <utility>
 
+#include "Utilities\Grid.h"
+#include "Utilities\StringBuilder.h"
+#include "Utilities\Parser.h"
+#include "Utilities\Graph.h"
 
-namespace Oxana {
+namespace Oxana
+{
 
 	//--------------------------------------------------------------------------/
 	// Declarations
@@ -22,56 +26,16 @@ namespace Oxana {
 	// Durations measure time spans, like one minute, two hours, ten ms
 	using FloatSeconds = std::chrono::duration<float>;
 
-	// An utility class for building strings for logging purposes
-	class StringBuilder
-	{
-		std::stringstream stream;
-
-	public:
-
-		template <typename T>
-		void Append(const T& t) {
-			stream << t;
-		}
-
-		template <typename First, typename... Rest>
-		void Append(const First& first, const Rest&... rest) {
-			stream << first;
-			Append(rest...); // recursive call using pack expansion syntax  
-		}
-
-		template <typename T> 
-		void AppendLine(const T& t) {
-			stream << t << std::endl;
-		}
-
-		template <typename First, typename... Rest> 
-		void AppendLine(const First& first, const Rest&... rest) {
-			stream << first;
-			AppendLine(rest...); // recursive call using pack expansion syntax  
-		}
-
-		void Clear()
-		{
-			stream = std::stringstream();
-		}
-
-		std::string ToString()
-		{
-			return stream.str();
-		}
-	};
-
 	class ScopeTimer
 	{
 
-	private:
+		private:
 		TimePoint StartTime;
 		TimePoint EndTime;
 		float* ReturnValue;
 		bool IsReturning;
 
-	public:
+		public:
 
 		ScopeTimer(float* output) : StartTime(Clock::now()), ReturnValue(output), IsReturning(true) {}
 		ScopeTimer() : StartTime(Clock::now()), IsReturning(false) {}
@@ -95,6 +59,8 @@ namespace Oxana {
 		}
 
 	};
+
+
 
 
 

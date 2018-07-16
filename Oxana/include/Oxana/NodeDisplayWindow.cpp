@@ -17,6 +17,11 @@ namespace Oxana
     buffer.push_back(display->latest);
   }
 
+	void NodeDisplayWindow::Reset()
+	{
+		buffer.clear();
+	}
+
   void NodeDisplayWindow::Draw(unsigned index)
   { 
     //ImGui::TestNodeGraphEditor();

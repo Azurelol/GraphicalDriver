@@ -13,17 +13,12 @@
 #include <type_traits>
 #include <stdio.h>
 #include <cstdio>
+#include <iostream>
+#include <cassert>
+#include <array>
+//#include <any>
 
 // SFML
-//namespace sf {
-//	class Color;
-//	class RenderWindow;
-//	class Keyboard;
-//	enum Key;
-//}
-
-
-
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>

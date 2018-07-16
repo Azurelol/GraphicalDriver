@@ -1,5 +1,5 @@
 #pragma once
-#include "GraphicalDriverInclude.h"
+#include "Include.h"
 
 namespace Oxana
 {
@@ -8,6 +8,10 @@ namespace Oxana
     std::string name;
     std::string lastValueToString;
     virtual void Record() = 0;
+		virtual void Clear() 
+		{
+			lastValueToString = std::string();
+		}
   };
 
   struct PrintVariableValue : WatchVariableBase
@@ -34,7 +38,6 @@ namespace Oxana
     ValueType* variable;
     bool isPointer;
 
-
     WatchVariable(const std::string& name, ValueType* variable)
       : variable(variable)
     {
@@ -59,6 +62,12 @@ namespace Oxana
   {
     std::vector<float> history;
     unsigned bufferSize;
+		void Clear() override
+		{
+			WatchVariableBase::Clear();
+			history.clear();
+		}
+
   };
 
   // A type that can be cast to a float!
