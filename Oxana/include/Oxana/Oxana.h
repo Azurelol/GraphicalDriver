@@ -55,6 +55,7 @@ namespace Oxana
 		std::stringstream outputStream;
 		ImGuiTextBuffer log;
 		bool showResult;
+		bool hasTests, hasSimulations;
 
 		// ------------------ Methods ----------------/
 		void Update();

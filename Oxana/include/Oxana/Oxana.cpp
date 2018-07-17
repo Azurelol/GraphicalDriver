@@ -23,9 +23,9 @@ namespace Oxana
 	void GUI::Initialize()
 	{
 		this->Assert();
-		window = std::make_unique<sf::RenderWindow>(sf::VideoMode(settings.width, settings.height), settings.title);
-		window->setKeyRepeatEnabled(false);
-		ImGui::SFML::Init(*window);
+		this->window = std::make_unique<sf::RenderWindow>(sf::VideoMode(this->settings.width, this->settings.height), this->settings.title);
+		this->window->setKeyRepeatEnabled(false);
+		ImGui::SFML::Init(*(this->window));
 		//outputFile = std::freopen(settings.stdoutCaptureFile.c_str(), "w+", stdout);
 		//this->Set(&this->simulations[0]);
 	}
@@ -39,12 +39,14 @@ namespace Oxana
 
 	void GUI::Assert()
 	{
-		for (auto& simulation : simulations)
+		this->hasSimulations = !this->simulations.empty();
+		for (auto& simulation : this->simulations)
 		{
 
 		}
 
-		for (auto& test : tests)
+		this->hasTests = !this->tests.empty();
+		for (auto& test : this->tests)
 		{
 
 		}
@@ -70,14 +72,14 @@ namespace Oxana
 
 		sf::Clock deltaClock;
 
-		while (window->isOpen())
+		while (this->window->isOpen())
 		{
 			sf::Event event;
-			while (window->pollEvent(event))
+			while (this->window->pollEvent(event))
 			{
 				ImGui::SFML::ProcessEvent(event);
 				if (event.type == sf::Event::Closed)
-					window->close();
+					this->window->close();
 				if (event.type == sf::Event::KeyPressed)
 					OnInput(event.key.code);
 			}
@@ -137,6 +139,9 @@ namespace Oxana
 			case sf::Keyboard::Space:
 				this->currentSimulation->Step(StepType::Multiple);
 				break;
+			case sf::Keyboard::F8:
+				this->currentSimulation->Reset();
+				break;
 		}
 	}
 
@@ -144,29 +149,36 @@ namespace Oxana
 	{
 		if (ImGui::BeginMainMenuBar())
 		{
-			if (ImGui::BeginMenu("Simulations"))
+			if (this->hasSimulations)
 			{
-				for (auto& simulation : this->simulations)
+				if (ImGui::BeginMenu("Simulations"))
 				{
-					if (ImGui::MenuItem(simulation.name.c_str())) {
-						this->Set(&simulation);
+					for (auto& simulation : this->simulations)
+					{
+						if (ImGui::MenuItem(simulation.name.c_str())) {
+							this->Set(&simulation);
+						}
 					}
-				}
 
-				ImGui::EndMenu();
+					ImGui::EndMenu();
+				}
+			}
+			
+			if (this->hasTests)
+			{
+				if (ImGui::BeginMenu("Tests"))
+				{
+					for (auto& test : this->tests)
+					{
+						if (ImGui::MenuItem(test.name.c_str())) {
+							this->Run(&test);
+						}
+					}
+
+					ImGui::EndMenu();
+				}
 			}
 
-			if (ImGui::BeginMenu("Tests"))
-			{
-				for (auto& test : this->tests)
-				{
-					if (ImGui::MenuItem(test.name.c_str())) {
-						this->Run(&test);
-					}
-				}
-
-				ImGui::EndMenu();
-			}
 			ImGui::EndMainMenuBar();
 		}
 	}
@@ -271,41 +283,18 @@ namespace Oxana
 			return;
 		}
 
-		//static ImGuiTextBuffer log;
 		ImGui::TextUnformatted(test.output.c_str());
 		ImGui::End();
 	}
 
 	void GUI::DrawSimulation()
 	{
+		// Draw the windows
 		DrawWatcher();
 		DrawVariableEditor();
 		DrawOverlay();
-
-		// If no steps have been taken, don't draw
-		//if (this->currentSimulation->steps < 1)
-		//	return;
 		
-		// Draw Simulation
-
-		//int bufferIndex = this->currentSimulation->currentStep - 1;
-		//const int offset = this->currentSimulation->steps - this->currentSimulation->stepBufferSize;
-		//if (offset > 0)
-		//	bufferIndex = std::max(bufferIndex - offset, 0);
-		//if (bufferIndex < 0)
-		//	bufferIndex = 0;
-
 		int bufferIndex = this->currentSimulation->currentStep;
-		// Draw all windows
-		//for (auto& window : this->currentSimulation->loggingWindows)
-		//	window.Draw((unsigned)bufferIndex);
-		//
-		//for (auto& window : this->currentSimulation->colorMapWindows)
-		//	window.Draw((unsigned)bufferIndex);
-		//
-		//for (auto& notification : this->currentSimulation->persistentNotifications)
-		//	notification.Draw((unsigned)bufferIndex);
-
 		for (auto& window : this->currentSimulation->windows)
 			window->Draw((unsigned)bufferIndex);
 

@@ -15,6 +15,9 @@
     <ClCompile Include="include\Oxana\Oxana.cpp" />
     <ClCompile Include="include\Oxana\Window.cpp" />
     <ClCompile Include="include\Oxana\Example\SimpleExample.cpp" />
+    <ClCompile Include="include\Oxana\ColorMapWindow.cpp" />
+    <ClCompile Include="include\Oxana\Simulation.cpp" />
+    <ClCompile Include="include\Oxana\UnitTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ImGui\imconfig.h">
@@ -29,6 +32,10 @@
     <ClInclude Include="include\Oxana\WatchVariable.h" />
     <ClInclude Include="include\Oxana\Window.h" />
     <ClInclude Include="include\Oxana\Example\Examples.h" />
+    <ClInclude Include="include\Oxana\EditableVariable.h" />
+    <ClInclude Include="include\Oxana\Include.h" />
+    <ClInclude Include="include\Oxana\UnitTest.h" />
+    <ClInclude Include="include\Oxana\Simulation.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="User">
@@ -40,5 +47,8 @@
     <Filter Include="Oxana">
       <UniqueIdentifier>{f3b0d9f4-d9f1-448d-b290-afb55a1152f2}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\Oxana\LICENSE.md" />
   </ItemGroup>
 </Project>

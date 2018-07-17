@@ -6,17 +6,41 @@
 
 namespace Oxana
 {
-	struct UnitTest : StringBuilder
+	class UnitTest : StringBuilder
 	{
-		//struct Check {
-		//	std::string output;
-		//	bool pass;
-		//};
+		//---------------------------------------------------------------------------/
+		// Declarations
+		//---------------------------------------------------------------------------/
+		struct Unit
+		{
+			std::string output;
+		};
+
+		struct Assertion : Unit
+		{			
+			bool pass;
+		};
+
+		//---------------------------------------------------------------------------/
+		// Fields
+		//---------------------------------------------------------------------------/
+		int passedAssertions;
+		int totalAssertions;
+
+		//---------------------------------------------------------------------------/
+		// Methods
+		//---------------------------------------------------------------------------/
+		UnitTest() : passedAssertions(0), totalAssertions(0)
+		{
+		}
 
 		bool Assert(float result, float expected, float epsilon) 
 		{
 			bool valid = WithinRange(result, expected, epsilon);
 			AppendLine("Result = ", result, ", Expected = ", expected, ", ", valid ? "OK" : "FAIL");
+			if (valid)
+				passedAssertions++;
+			totalAssertions++;
 			return valid;
 		}
 
@@ -24,6 +48,9 @@ namespace Oxana
 		{
 			bool valid = WithinRange(result, , expected);
 			AppendLine("Result = ", result, ", Expected = ", expected, ", ", valid ? "OK" : "FAIL");
+			if (valid)
+				passedAssertions++;
+			totalAssertions++;
 			return valid;
 		}
 
@@ -36,7 +63,7 @@ namespace Oxana
 
 	using TestFunction = std::function<UnitTest(void)>;
 
-	class Test
+	class TestSuite
 	{
 		friend class GUI;
 
@@ -51,8 +78,8 @@ namespace Oxana
 		float timeElapsed;	
 	
 		public:
-		Test(); 
-		Test(const std::string& name);	
+		TestSuite(); 
+		TestSuite(const std::string& name);	
 	
 		private:
 		void Initialize();
