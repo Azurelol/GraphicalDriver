@@ -26,6 +26,7 @@ namespace Oxana
 		this->window = std::make_unique<sf::RenderWindow>(sf::VideoMode(this->settings.width, this->settings.height), this->settings.title);
 		this->window->setKeyRepeatEnabled(false);
 		ImGui::SFML::Init(*(this->window));
+		ImGui::StyleColorsDark();
 		//outputFile = std::freopen(settings.stdoutCaptureFile.c_str(), "w+", stdout);
 		//this->Set(&this->simulations[0]);
 	}
@@ -60,7 +61,7 @@ namespace Oxana
 		this->currentSimulation->Initialize();
 	}
 
-	void GUI::Run(Test * test)
+	void GUI::Run(TestSuite * test)
 	{
 		test->Run();
 		test->enabled = true;
@@ -101,7 +102,7 @@ namespace Oxana
 		simulations.push_back(simulation);
 	}
 
-	void GUI::Add(Test test)
+	void GUI::Add(TestSuite test)
 	{
 		tests.push_back(test);
 	}
@@ -274,7 +275,7 @@ namespace Oxana
 		}
 	}
 
-	void GUI::DrawTest(Test & test)
+	void GUI::DrawTest(TestSuite & test)
 	{
 		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
 		if (!ImGui::Begin(test.name.c_str(), &test.enabled)) 

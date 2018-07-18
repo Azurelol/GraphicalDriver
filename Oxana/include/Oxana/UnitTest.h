@@ -6,8 +6,9 @@
 
 namespace Oxana
 {
-	class UnitTest : StringBuilder
+	class UnitTest : public StringBuilder
 	{
+		public:
 		//---------------------------------------------------------------------------/
 		// Declarations
 		//---------------------------------------------------------------------------/
