@@ -60,7 +60,7 @@ namespace Oxana
 		this->currentSimulation->Initialize();
 	}
 
-	void GUI::Run(Test * test)
+	void GUI::Run(TestRunner * test)
 	{
 		test->Run();
 		test->enabled = true;
@@ -105,7 +105,7 @@ namespace Oxana
 		simulations.push_back(simulation);
 	}
 
-	void GUI::Add(Test test)
+	void GUI::Add(TestRunner test)
 	{
 		tests.push_back(test);
 	}
@@ -285,7 +285,7 @@ namespace Oxana
 		}
 	}
 
-	void GUI::DrawTest(Test & test)
+	void GUI::DrawTest(TestRunner & test)
 	{
 		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
 		if (!ImGui::Begin(test.name.c_str(), &test.enabled))
@@ -294,9 +294,10 @@ namespace Oxana
 			return;
 		}
 
+		UnitTest::Content::Type previousType;
 		for (auto& content : test.output.content)
-		{
-			UnitTest::Content* content2 = new UnitTest::Content();
+		{			
+			//UnitTest::Content* content2 = new UnitTest::Content();
 			switch (content->type)
 			{
 				case UnitTest::Content::Type::Text:
@@ -317,16 +318,33 @@ namespace Oxana
 					auto imageContent = dynamic_cast<UnitTest::ImageContent*>(content.get());					
 					
 					ImGui::TextColored(sf::Color::Yellow, imageContent->text.c_str());
-					//ImGui::SameLine();
 					if (imageContent->image.loaded)
-						ImGui::Image(imageContent->image.texture, sf::Color::White, sf::Color::White);
-				}
-				//UnitTest::ImageContent* imageContent = dynamic_cast<UnitTest::ImageContent*>(content);
+						ImGui::Image(imageContent->image.texture, sf::Color::White, sf::Color::White);					
+				}				
 				break;
-			}
 
+				case UnitTest::Content::Type::TimerStarted:
+				{
+					if (previousType != UnitTest::Content::Type::TimerEnded)
+						ImGui::Separator();
+				}
+				break;
+
+				case UnitTest::Content::Type::TimerEnded:
+				{
+					ImGui::TextColored(sf::Color::Green, content->text.c_str());
+					ImGui::Separator();
+				}
+				break;
+
+			}
+			previousType = content->type;
 			ImGui::Spacing();
 		}
+				
+		
+
+		
 
 		//ImGui::TextUnformatted(test.output.c_str());
 		//for (auto& image : test.images)

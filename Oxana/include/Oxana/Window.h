@@ -72,7 +72,7 @@ namespace Oxana
 
 	struct ImageDisplayWindow : Window
 	{
-		Image image;
+		Texture image;
 
 		void Update();
 		void Reset();

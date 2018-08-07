@@ -8,36 +8,41 @@ namespace Oxana
 {
 	class UnitTest : public StringBuilder
 	{
+		friend class TestRunner;
+
 		public:
 		//---------------------------------------------------------------------------/
 		// Declarations
 		//---------------------------------------------------------------------------/
 		struct Content
 		{
+			public:
 			enum class Type
 			{
 				Text,
 				Assertion,
-				Image
+				Image,
+				TimerStarted,
+				TimerEnded
 			};
 
 			Type type;
-			std::string text;			
+			std::string text;
 			Content() : type(Type::Text) {}
 			Content(Type type) : type(type) {}
 			virtual ~Content() {}
 		};
 
 		struct Assertion : Content
-		{			
+		{
 			bool pass;
 			Assertion() : Content(Type::Assertion) {}
 		};
 
 		struct ImageContent : Content
 		{
-			Image image;
-			ImageContent(const Image& image) : image(image), Content(Type::Image) {}
+			Texture image;
+			ImageContent(const Texture& image) : image(image), Content(Type::Image) {}
 		};
 
 		struct Result
@@ -49,30 +54,27 @@ namespace Oxana
 			Result() : passedAssertions(0), totalAssertions(0) {}
 		};
 
+
 		//---------------------------------------------------------------------------/
 		// Fields
 		//---------------------------------------------------------------------------/
-		Result result;		
+		private:
+		Result result;
+		Timer timer;
+		bool timing;
+		bool evaluated;
 
 		//---------------------------------------------------------------------------/
 		// Methods
 		//---------------------------------------------------------------------------/
-		UnitTest()
+		public:
+		using ProcedureFunction = std::function<void()>;
+
+		UnitTest() : timing(false), evaluated(false)
 		{
 		}
 
-		// Invoked after a series of append line calls in order to form a text content out of them
-		void SubmitContent()
-		{
-			std::string text = this->ToString(); 
-			this->Clear();
-
-			Content content;
-			content.text = text;
-			this->result.content.push_back(std::make_shared<Content>(content));
-		}
-
-		bool Assert(float result, float expected, float epsilon) 
+		bool Assert(float result, float expected, float epsilon)
 		{
 			this->SubmitContentIfNeeded();
 
@@ -83,7 +85,7 @@ namespace Oxana
 			content.text = this->ToString(); this->Clear();
 			content.pass = valid;
 			this->result.content.push_back(std::make_shared<Assertion>(content));
-			
+
 			if (valid)
 				this->result.passedAssertions++;
 			this->result.totalAssertions++;
@@ -101,38 +103,35 @@ namespace Oxana
 			assertion.text = this->ToString(); this->Clear();
 			assertion.pass = valid;
 			this->result.content.push_back(std::make_shared<Assertion>(assertion));
-			
+
 			if (valid)
 				this->result.passedAssertions++;
 			this->result.totalAssertions++;
 			return valid;
 		}
 
-		void AppendImage(const std::string& name, const std::string& path)
-		{
-			this->SubmitContentIfNeeded();
+		// Adds an image to the test from a gigven path
+		void AppendImage(const std::string& name, const std::string& path);
+		// Adds an image to the test
+		void AppendImage(const std::string& name, const Image& image);
+		// Timers the given procedure
+		void Time(ProcedureFunction procedure);
+		// Begins the timer
+		void BeginTimer();
+		// Ends the current timer
+		void EndTimer();
 
-			Image image = Image(name, path);
-			ImageContent content(image);
-			content.text = name;
-
-			this->result.content.push_back(std::make_shared<ImageContent>(content));
-		}
-
-		void OnRun()
-		{
-			this->SubmitContentIfNeeded();
-		}
-
-		void SubmitContentIfNeeded()
-		{
-			if (!this->IsEmpty())
-				this->SubmitContent();
-		}
+		private:
+		void OnRun();
+		void SubmitContent();
+		void SubmitContentIfNeeded();
+		// Returns the result of this test
+		Result ToResult();
 
 		//---------------------------------------------------------------------------/
 		// Methods: Utlity
 		//---------------------------------------------------------------------------/
+		public:
 		static bool WithinRange(float value, float expected, float epsilon)
 		{
 			return std::abs(value - expected) < epsilon;
@@ -141,12 +140,10 @@ namespace Oxana
 
 	};
 
-	// A function that returns a constructed unit test
-	//using UnitTestFunction = std::function<UnitTest(void)>;
 	// A function that builds an unit test
-	using UnitTestFunction2 = std::function<void(UnitTest&)>;
+	using UnitTestFunction = std::function<void(UnitTest&)>;
 
-	class Test
+	class TestRunner
 	{
 		enum class TestFunctionType
 		{
@@ -158,27 +155,24 @@ namespace Oxana
 
 		public:
 		std::string name;
-	
+
 		private:
 		TestFunctionType type;
-		//UnitTestFunction function;
-		UnitTestFunction2 function2;
+		UnitTestFunction function;
 		UnitTest::Result output;
-		std::vector<Image> images;
+		std::vector<Texture> images;
 		bool enabled;
-		//LogWindow window;
-		float timeElapsed;	
-	
+		float timeElapsed;
+
 		public:
-		//Test(const std::string& name, UnitTestFunction testFunction);
-		Test(const std::string& name, UnitTestFunction2 testFunction);
-	
+		TestRunner(const std::string& name, UnitTestFunction testFunction);
+
 		private:
 		void Initialize();
 		void Run();
-	
+
 	};
 
-	
+
 
 }

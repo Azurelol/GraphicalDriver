@@ -20,9 +20,17 @@ namespace Oxana
 	{
 		TimePoint startTime;
 
-		protected:
+		public:
+		using Callback = std::function<void(float)>;
+
 		Timer() : startTime(Clock::now())
 		{
+		}
+
+		// Resets the timer to the current time
+		void Reset()
+		{
+			startTime = Clock::now();
 		}
 
 		// Returns the time elapsed since this timer was created
@@ -40,18 +48,29 @@ namespace Oxana
 	class ScopeTimer : public Timer
 	{
 		private:
-
+		enum class ReturnType
+		{
+			Callback,
+			UpdateValue
+		};
 		float* returnValue;
-		bool isReturning;
+		ReturnType type;
+		Callback callback;		
 
 		public:
-		ScopeTimer(float* output) : returnValue(output), isReturning(true) {}
-		ScopeTimer() : isReturning(false) {}
+		ScopeTimer(float* output) : returnValue(output), type(ReturnType::UpdateValue) {}
+		ScopeTimer(Callback onFinished) : callback(callback), type(ReturnType::Callback) {}
 		~ScopeTimer()
 		{
-			// If a float reference was passed in, this timer will set it now
-			if (isReturning)
-				*returnValue = Elapsed();
+			float elapsed = Elapsed();
+			switch (this->type)
+			{
+				case ReturnType::Callback:
+					callback(elapsed);
+
+				case ReturnType::UpdateValue:
+					*returnValue = elapsed;
+			}
 		}
 	};
 }

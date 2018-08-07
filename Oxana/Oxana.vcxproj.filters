@@ -48,6 +48,7 @@
     <ClInclude Include="include\Oxana\Utilities\Image.h" />
     <ClInclude Include="include\Oxana\Utilities\Vector.h" />
     <ClInclude Include="include\Oxana\Utilities\Timer.h" />
+    <ClInclude Include="include\Oxana\Utilities\Geometry.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="User">

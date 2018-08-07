@@ -145,6 +145,7 @@
     <ClInclude Include="include\Oxana\Simulation.h" />
     <ClInclude Include="include\Oxana\UnitTest.h" />
     <ClInclude Include="include\Oxana\Utilities.h" />
+    <ClInclude Include="include\Oxana\Utilities\Geometry.h" />
     <ClInclude Include="include\Oxana\Utilities\Graph.h" />
     <ClInclude Include="include\Oxana\Utilities\Grid.h" />
     <ClInclude Include="include\Oxana\Utilities\Image.h" />
