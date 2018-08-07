@@ -3,5 +3,5 @@
 
 int main(int argc, char** argv)
 {
-  return Oxana::SimpleExample();  
+  return Oxana::RunExampleDriver();  
 }

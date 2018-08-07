@@ -5,6 +5,7 @@
 #include "ColorMap.h"
 #include "Notification.h"
 #include "NodeDisplay.h"
+#include "Utilities/Image.h"
 
 namespace Oxana
 {
@@ -68,5 +69,14 @@ namespace Oxana
 		void Reset();
     void Draw(unsigned index) override;
   };
+
+	struct ImageDisplayWindow : Window
+	{
+		Image image;
+
+		void Update();
+		void Reset();
+		void Draw(unsigned index) override;
+	};
 
 }

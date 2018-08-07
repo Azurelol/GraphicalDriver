@@ -3,5 +3,12 @@
 
 namespace Oxana
 {
-  int SimpleExample();
+	namespace Examples
+	{
+		void ApplesPears(GUI& gui);
+		void SoftwareRendering(GUI& gui);
+	}
+
+	int RunExampleDriver();
+
 }

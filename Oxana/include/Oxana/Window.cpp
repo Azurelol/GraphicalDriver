@@ -90,11 +90,23 @@ namespace Oxana
 	}
 
 
+	void ImageDisplayWindow::Update()
+	{
 
+	}
 
+	void ImageDisplayWindow::Reset()
+	{
+		if (!image.loaded)
+			image.Load();
+	}
 
-
-
-
+	void ImageDisplayWindow::Draw(unsigned index)
+	{
+		ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+		ImGui::Begin(title.c_str());
+		ImGui::Image(this->image.texture);
+		ImGui::End();
+	}
 
 }

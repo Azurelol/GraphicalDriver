@@ -27,8 +27,7 @@ namespace Oxana
 		this->window->setKeyRepeatEnabled(false);
 		ImGui::SFML::Init(*(this->window));
 		ImGui::StyleColorsDark();
-		//outputFile = std::freopen(settings.stdoutCaptureFile.c_str(), "w+", stdout);
-		//this->Set(&this->simulations[0]);
+		//this->imageDisplay = std::make_unique<ImageDisplayWindow>();
 	}
 
 	void GUI::Shutdown()
@@ -61,12 +60,16 @@ namespace Oxana
 		this->currentSimulation->Initialize();
 	}
 
-	void GUI::Run(TestSuite * test)
+	void GUI::Run(Test * test)
 	{
 		test->Run();
 		test->enabled = true;
 	}
-	
+
+	void GUI::AddExamples()
+	{
+	}
+
 	void GUI::Run()
 	{
 		Initialize();
@@ -102,10 +105,15 @@ namespace Oxana
 		simulations.push_back(simulation);
 	}
 
-	void GUI::Add(TestSuite test)
+	void GUI::Add(Test test)
 	{
 		tests.push_back(test);
 	}
+
+	//void GUI::Add(Image image)
+	//{
+	//	imageDisplay->image = image;
+	//}
 
 	void GUI::Update()
 	{
@@ -156,7 +164,8 @@ namespace Oxana
 				{
 					for (auto& simulation : this->simulations)
 					{
-						if (ImGui::MenuItem(simulation.name.c_str())) {
+						if (ImGui::MenuItem(simulation.name.c_str()))
+						{
 							this->Set(&simulation);
 						}
 					}
@@ -164,14 +173,15 @@ namespace Oxana
 					ImGui::EndMenu();
 				}
 			}
-			
+
 			if (this->hasTests)
 			{
 				if (ImGui::BeginMenu("Tests"))
 				{
 					for (auto& test : this->tests)
 					{
-						if (ImGui::MenuItem(test.name.c_str())) {
+						if (ImGui::MenuItem(test.name.c_str()))
+						{
 							this->Run(&test);
 						}
 					}
@@ -197,8 +207,8 @@ namespace Oxana
 		ImGui::Separator();
 		ImGui::BeginGroup();
 		{
-			if (ImGui::Button("Auto"))			
-				this->currentSimulation->isAutomatic = !this->currentSimulation->isAutomatic;			
+			if (ImGui::Button("Auto"))
+				this->currentSimulation->isAutomatic = !this->currentSimulation->isAutomatic;
 			ImGui::SameLine();
 
 			// Take steps
@@ -271,20 +281,59 @@ namespace Oxana
 		{
 			if (test.enabled)
 				DrawTest(test);
-				//test.window.Draw(0);
+			//test.window.Draw(0);
 		}
 	}
 
-	void GUI::DrawTest(TestSuite & test)
+	void GUI::DrawTest(Test & test)
 	{
 		ImGui::SetNextWindowSize(ImVec2(520, 600), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin(test.name.c_str(), &test.enabled)) 
+		if (!ImGui::Begin(test.name.c_str(), &test.enabled))
 		{
 			ImGui::End();
 			return;
 		}
 
-		ImGui::TextUnformatted(test.output.c_str());
+		for (auto& content : test.output.content)
+		{
+			UnitTest::Content* content2 = new UnitTest::Content();
+			switch (content->type)
+			{
+				case UnitTest::Content::Type::Text:
+				{
+					ImGui::TextWrapped(content->text.c_str());
+				}
+				break;
+
+				case UnitTest::Content::Type::Assertion:
+				{
+					auto assertion = dynamic_cast<UnitTest::Assertion*>(content.get());
+					ImGui::TextColored(assertion->pass ? sf::Color::Green : sf::Color::Red, assertion->text.c_str());
+				}
+				break;
+
+				case UnitTest::Content::Type::Image:
+				{
+					auto imageContent = dynamic_cast<UnitTest::ImageContent*>(content.get());					
+					
+					ImGui::TextColored(sf::Color::Yellow, imageContent->text.c_str());
+					//ImGui::SameLine();
+					if (imageContent->image.loaded)
+						ImGui::Image(imageContent->image.texture, sf::Color::White, sf::Color::White);
+				}
+				//UnitTest::ImageContent* imageContent = dynamic_cast<UnitTest::ImageContent*>(content);
+				break;
+			}
+
+			ImGui::Spacing();
+		}
+
+		//ImGui::TextUnformatted(test.output.c_str());
+		//for (auto& image : test.images)
+		//{
+		//	if (image.loaded)
+		//		ImGui::Image(image.texture, sf::Color::White, sf::Color::White);
+		//}
 		ImGui::End();
 	}
 
@@ -294,7 +343,7 @@ namespace Oxana
 		DrawWatcher();
 		DrawVariableEditor();
 		DrawOverlay();
-		
+
 		int bufferIndex = this->currentSimulation->currentStep;
 		for (auto& window : this->currentSimulation->windows)
 			window->Draw((unsigned)bufferIndex);
@@ -337,6 +386,12 @@ namespace Oxana
 		ImGui::PopStyleColor();
 
 	}
+
+	//void GUI::DrawImages()
+	//{
+	//	if (imageDisplay->enabled)
+	//		imageDisplay->Draw(0);
+	//}
 
 	void GUI::DrawWatcher()
 	{

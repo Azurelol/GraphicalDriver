@@ -39,16 +39,20 @@ namespace Oxana
 		// Adds a simuilation to the GUI
 		void Add(Simulation simulation);
 		// Adds an unit test to the GUI
-		void Add(TestSuite test); 
+		void Add(Test test); 
+		// Adds an image to be drawn
+		void Add(Image image);
 		// Starts running the GUI driver
 		void Run();
 
 	private:
+
 		//---------------------------------------------------------------------------/
 		// Fields
 		//---------------------------------------------------------------------------/
+		//std::unique_ptr<ImageDisplayWindow> imageDisplay;
 		std::vector<Simulation> simulations;
-		std::vector<TestSuite> tests;
+		std::vector<Test> tests;		
 		Simulation* currentSimulation;
 		std::unique_ptr<sf::RenderWindow> window;
 		FILE* outputFile;
@@ -66,18 +70,21 @@ namespace Oxana
 		void DrawControls();
 		void DrawGrid();
 		void DrawTests();
-		void DrawTest(TestSuite& test);
+		void DrawTest(Test& test);
 		void DrawSimulation();
 		void DrawWatcher();
 		void DrawVariableEditor();
 		void DrawSTDOUT();
 		void DrawOverlay();
+		void DrawImages();
 
 		void Initialize();
 		void Shutdown();
 		void Assert();
 		void Set(Simulation* simulation);
-		void Run(TestSuite* test);
+		void Run(Test* test);
+		
+		void AddExamples();
 	};
 
 }

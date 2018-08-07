@@ -1,72 +1,67 @@
 #include "Examples.h"
 
 namespace Oxana
-{
-	int SimpleExample()
+{	
+	namespace Examples
 	{
-		struct Example {
-			int apples;
-			int pears;
-			StringBuilder log;
-		};
-
-		// Used to configure the GUI
-		Oxana::GUI::Settings settings;
-
-		// Construct the gui
-		Oxana::GUI gui(settings);
-
-		// Your class being watched
-		Example example;
-
-		// Customize Oxana here  
-		gui.settings.title = "Example Driver";
-		gui.settings.width = 1440;
-		gui.settings.height = 900;
-
-		auto logFunction = [&]() -> std::string
+		void ApplesPears(GUI& gui)
 		{
-			return example.log.ToString();
-		};
+			struct ApplesPears
+			{
+				int apples;
+				int pears;
+				StringBuilder log;
+			};
 
-		// Simple simulation: Will keep running while there's more apples than pears
-		auto stepFunction = [&]() -> bool
-		{
-			example.apples--;
-			example.pears++;
-			example.log.Clear();
-			example.log.AppendLine("Apples = ", example.apples, ", Pears = ", example.pears);
-			return (example.apples > example.pears);
-		};
+			// Your class being watched
+			static ApplesPears example;
 
-		auto resultFunction = [&]() -> std::string
-		{
-			return "Apples now equal to pears!";
-		};
+			// Customize Oxana here  
+			gui.settings.title = "Example Driver";
+			gui.settings.width = 1440;
+			gui.settings.height = 900;
 
-		auto resetFunction = [&]() {
-			example.apples = 100;
-			example.pears = 0;
-			example.log.Clear();
-		};
+			auto logFunction = [&]() -> std::string
+			{
+				return example.log.ToString();
+			};
 
-		// Construct the simulation
-		Oxana::Simulation exampleSimulation;
-		exampleSimulation.name = "Apples vs Pears";
-		exampleSimulation.onStep = stepFunction;
-		exampleSimulation.onReset = resetFunction;
-		exampleSimulation.onResult = resultFunction;
-		exampleSimulation.Watch("Apples", &example.apples);
-		exampleSimulation.Watch("Pears", &example.pears);
-		exampleSimulation.PlotLine("Apples", &example.apples);
-		exampleSimulation.AddLog("Update", logFunction);
+			// Simple simulation: Will keep running while there's more apples than pears
+			auto stepFunction = [&]() -> bool
+			{
+				example.apples--;
+				example.pears++;
+				example.log.Clear();
+				example.log.AppendLine("Apples = ", example.apples, ", Pears = ", example.pears);
+				return (example.apples > example.pears);
+			};
 
-		gui.Add(exampleSimulation);
+			auto resultFunction = [&]() -> std::string
+			{
+				return "Apples now equal to pears!";
+			};
 
-		// Run it!
-		gui.Run();
+			auto resetFunction = [&]()
+			{
+				example.apples = 100;
+				example.pears = 0;
+				example.log.Clear();
+			};
 
-		return 0;
+			// Construct the simulation
+			static Oxana::Simulation simulation;
+			simulation.name = "Apples vs Pears";			
+			simulation.onStep = stepFunction;
+			simulation.onReset = resetFunction;
+			simulation.onResult = resultFunction;
+			simulation.Watch("Apples", &example.apples);
+			simulation.Watch("Pears", &example.pears);
+			simulation.PlotLine("Apples", &example.apples);
+			simulation.AddLog("Update", logFunction);
+
+			gui.Add(simulation);
+		}
 	}
+
 
 }

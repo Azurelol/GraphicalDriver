@@ -29,6 +29,8 @@ namespace Oxana
 		public:
 		// The name of the simulation
 		std::string name;
+		// If there's a category for this simulation
+		std::string menu;
 		// Invoked when the simulation is reset
 		ResetFunction onReset;
 		// Invoked for every step of the simulation

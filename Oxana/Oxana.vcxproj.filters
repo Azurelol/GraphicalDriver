@@ -18,6 +18,10 @@
     <ClCompile Include="include\Oxana\ColorMapWindow.cpp" />
     <ClCompile Include="include\Oxana\Simulation.cpp" />
     <ClCompile Include="include\Oxana\UnitTest.cpp" />
+    <ClCompile Include="include\Oxana\Example\SoftwareRenderer.cpp" />
+    <ClCompile Include="include\Oxana\Example\Examples.cpp" />
+    <ClCompile Include="include\Oxana\Example\tgaimage.cpp" />
+    <ClCompile Include="include\Oxana\Utilities\Graph.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ImGui\imconfig.h">
@@ -36,6 +40,14 @@
     <ClInclude Include="include\Oxana\Include.h" />
     <ClInclude Include="include\Oxana\UnitTest.h" />
     <ClInclude Include="include\Oxana\Simulation.h" />
+    <ClInclude Include="include\Oxana\Example\tgaimage.h" />
+    <ClInclude Include="include\Oxana\Utilities\StringBuilder.h" />
+    <ClInclude Include="include\Oxana\Utilities\Parser.h" />
+    <ClInclude Include="include\Oxana\Utilities\Grid.h" />
+    <ClInclude Include="include\Oxana\Utilities\Graph.h" />
+    <ClInclude Include="include\Oxana\Utilities\Image.h" />
+    <ClInclude Include="include\Oxana\Utilities\Vector.h" />
+    <ClInclude Include="include\Oxana\Utilities\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="User">

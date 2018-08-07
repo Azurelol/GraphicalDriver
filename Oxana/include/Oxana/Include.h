@@ -16,13 +16,15 @@
 #include <iostream>
 #include <cassert>
 #include <array>
-//#include <any>
 
 // SFML
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Image.hpp>
+#include <SFML/Graphics/Texture.hpp>
 
 // ImGUI
 #include <ImGui\imgui.h>

@@ -120,11 +120,15 @@
     <ClCompile Include="include\ImGui\imgui.cpp" />
     <ClCompile Include="include\ImGui\imgui_draw.cpp" />
     <ClCompile Include="include\Oxana\ColorMapWindow.cpp" />
+    <ClCompile Include="include\Oxana\Example\Examples.cpp" />
     <ClCompile Include="include\Oxana\Example\SimpleExample.cpp" />
+    <ClCompile Include="include\Oxana\Example\SoftwareRenderer.cpp" />
+    <ClCompile Include="include\Oxana\Example\tgaimage.cpp" />
     <ClCompile Include="include\Oxana\NodeDisplayWindow.cpp" />
     <ClCompile Include="include\Oxana\Oxana.cpp" />
     <ClCompile Include="include\Oxana\Simulation.cpp" />
     <ClCompile Include="include\Oxana\UnitTest.cpp" />
+    <ClCompile Include="include\Oxana\Utilities\Graph.cpp" />
     <ClCompile Include="include\Oxana\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +136,7 @@
     <ClInclude Include="include\Oxana\ColorMap.h" />
     <ClInclude Include="include\Oxana\EditableVariable.h" />
     <ClInclude Include="include\Oxana\Example\Examples.h" />
+    <ClInclude Include="include\Oxana\Example\tgaimage.h" />
     <ClInclude Include="include\Oxana\GraphicalDriverInclude.h" />
     <ClInclude Include="include\Oxana\Include.h" />
     <ClInclude Include="include\Oxana\NodeDisplay.h" />
@@ -140,6 +145,13 @@
     <ClInclude Include="include\Oxana\Simulation.h" />
     <ClInclude Include="include\Oxana\UnitTest.h" />
     <ClInclude Include="include\Oxana\Utilities.h" />
+    <ClInclude Include="include\Oxana\Utilities\Graph.h" />
+    <ClInclude Include="include\Oxana\Utilities\Grid.h" />
+    <ClInclude Include="include\Oxana\Utilities\Image.h" />
+    <ClInclude Include="include\Oxana\Utilities\Parser.h" />
+    <ClInclude Include="include\Oxana\Utilities\StringBuilder.h" />
+    <ClInclude Include="include\Oxana\Utilities\Timer.h" />
+    <ClInclude Include="include\Oxana\Utilities\Vector.h" />
     <ClInclude Include="include\Oxana\WatchVariable.h" />
     <ClInclude Include="include\Oxana\Window.h" />
   </ItemGroup>
