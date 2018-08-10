@@ -44,11 +44,12 @@ namespace Oxana
 		this->result.content.push_back(std::make_shared<ImageContent>(content));
 	}
 
-	void UnitTest::AppendImage(const std::string & name, const Image & image)
+	void UnitTest::AppendImage(const std::string & name, Image & image)
 	{
 		this->SubmitContentIfNeeded();
 
-		Texture texture(image.ToTexture());
+		image.FlipVertically();
+		Texture texture(image.ToTexture());		
 		ImageContent content(texture);
 		content.text = name;
 
@@ -67,6 +68,7 @@ namespace Oxana
 		if (timing)
 			throw std::exception("The timer is already running!");
 
+		this->SubmitContentIfNeeded();
 		timing = true;
 		timer.Reset();
 

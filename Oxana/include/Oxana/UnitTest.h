@@ -113,7 +113,7 @@ namespace Oxana
 		// Adds an image to the test from a gigven path
 		void AppendImage(const std::string& name, const std::string& path);
 		// Adds an image to the test
-		void AppendImage(const std::string& name, const Image& image);
+		void AppendImage(const std::string& name, Image& image);
 		// Timers the given procedure
 		void Time(ProcedureFunction procedure);
 		// Begins the timer

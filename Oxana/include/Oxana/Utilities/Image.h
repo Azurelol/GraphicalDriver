@@ -11,7 +11,7 @@ namespace Oxana
 	class Image
 	{
 		sf::Image image;
-		Vector2 size;
+		Vector2f size;
 		sf::Color fillColor;
 
 		public:
@@ -27,7 +27,7 @@ namespace Oxana
 
 		void Reset(float width, float height, sf::Color fillColor = sf::Color::White)
 		{
-			this->size = Vector2(width, height);
+			this->size = Vector2f(width, height);
 			this->fillColor = fillColor;
 			this->Reset();
 		}
