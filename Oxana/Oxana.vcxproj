@@ -128,6 +128,7 @@
     <ClCompile Include="include\Oxana\Oxana.cpp" />
     <ClCompile Include="include\Oxana\Simulation.cpp" />
     <ClCompile Include="include\Oxana\UnitTest.cpp" />
+    <ClCompile Include="include\Oxana\Utilities\Geometry.cpp" />
     <ClCompile Include="include\Oxana\Utilities\Graph.cpp" />
     <ClCompile Include="include\Oxana\Window.cpp" />
   </ItemGroup>
@@ -158,6 +159,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="include\Oxana\LICENSE.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="include\Oxana\Text.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

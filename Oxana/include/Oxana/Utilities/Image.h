@@ -7,15 +7,17 @@
 
 namespace Oxana
 {
+	using Color = sf::Color;
+
 	// Class for basic image manipulation
 	class Image
 	{
 		sf::Image image;
 		Vector2f size;
-		sf::Color fillColor;
+		Color fillColor;
 
 		public:
-		Image(float width, float height, sf::Color color = sf::Color::White)
+		Image(float width, float height, Color color = sf::Color::White)
 		{
 			this->Reset(width, height, color);
 		}
@@ -25,7 +27,7 @@ namespace Oxana
 			image.saveToFile(path.c_str());
 		}
 
-		void Reset(float width, float height, sf::Color fillColor = sf::Color::White)
+		void Reset(float width, float height, Color fillColor = sf::Color::White)
 		{
 			this->size = Vector2f(width, height);
 			this->fillColor = fillColor;
@@ -33,14 +35,27 @@ namespace Oxana
 		}
 
 		void Reset()
-		{		
-			
+		{					
 			image.create(this->size.x, this->size.y, this->fillColor);
 		}
 
-		void SetPixel(int x, int y, sf::Color color)
-		{
+		void SetPixel(int x, int y, Color color)
+		{			
 			image.setPixel(x, y, color);
+		}
+
+		bool TrySetPixel(int x, int y, Color color)
+		{
+			if (!ValidatePixel(x, y))
+				return false;
+
+			image.setPixel(x, y, color);
+			return true;
+		}
+
+		bool ValidatePixel(int x, int y)
+		{
+			return !(x >= size.x || y >= size.y);				
 		}
 
 		void FlipVertically()
@@ -59,6 +74,11 @@ namespace Oxana
 			texture.loadFromImage(this->image);
 			return texture;
 		}
+
+		//static float Lerp(float a, float b, float t)
+		//{
+		//	return a
+		//}
 
 	};
 

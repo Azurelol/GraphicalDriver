@@ -93,6 +93,7 @@ namespace Oxana
 	using Vector3f = Vector3<float>;
 	using Vector3i = Vector3<int>;
 
+
 	//struct Vector2f
 	//{
 	//	float x;

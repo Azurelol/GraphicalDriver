@@ -13,3 +13,4 @@
 #include "Utilities\Vector.h"
 #include "Utilities\Timer.h"
 #include "Utilities\Image.h"
+#include "Utilities\Geometry.h"

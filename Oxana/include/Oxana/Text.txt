@@ -1,0 +1,4 @@
+Known Bugs:
+
+Software Renderer:
+1) Having to use the TrySetPixel instead of SetPixel to draw the lines.

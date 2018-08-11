@@ -22,6 +22,7 @@
     <ClCompile Include="include\Oxana\Example\Examples.cpp" />
     <ClCompile Include="include\Oxana\Example\tgaimage.cpp" />
     <ClCompile Include="include\Oxana\Utilities\Graph.cpp" />
+    <ClCompile Include="include\Oxana\Utilities\Geometry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ImGui\imconfig.h">
@@ -63,5 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="include\Oxana\LICENSE.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="include\Oxana\Text.txt" />
   </ItemGroup>
 </Project>
